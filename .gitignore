@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+.venv/
+env/
+*.db
+attendance.db
+models/
+.vercel
+node_modules/
+.DS_Store
+yolov8n.pt

@@ -1,0 +1,4 @@
+centre_id,batch_session_id,date,scheduled_start,scheduled_end,reported_attendance_count,course_name,trainer_name
+TC-DEL-0101,BATCH-DEL-2026-A1,2026-10-04,09:00,13:00,20,IT-ITES Hardware Tech,Rajesh Kumar
+TC-DEL-0101,BATCH-DEL-2026-A2,2026-10-04,14:00,18:00,18,IT-ITES Hardware Tech,Rajesh Kumar
+TC-DEL-0101,BATCH-DEL-2026-A1,2026-10-05,09:00,13:00,20,IT-ITES Hardware Tech,Rajesh Kumar

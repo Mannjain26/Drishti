@@ -1,0 +1,25 @@
+{
+  "centre_id": "TC-UP-0309",
+  "scheme_code": "DDU-GKY",
+  "centre_name": "Pragati Vocational Training Institute - Lucknow",
+  "items": [
+    {
+      "category": "solar_inverter_kit",
+      "description": "Solar PV Installation & Inverter Training Rig",
+      "required_quantity": 6,
+      "mandatory_for_batch": true
+    },
+    {
+      "category": "multimeter_workbench",
+      "description": "Digital Electrical Diagnostics Station",
+      "required_quantity": 12,
+      "mandatory_for_batch": true
+    },
+    {
+      "category": "safety_gear_rack",
+      "description": "PPE and High Voltage Safety Station",
+      "required_quantity": 1,
+      "mandatory_for_batch": true
+    }
+  ]
+}

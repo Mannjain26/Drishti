@@ -1,0 +1,25 @@
+{
+  "centre_id": "TC-HAR-0204",
+  "scheme_code": "PMKVY-4.0",
+  "centre_name": "Gramin Kaushal Vikas Kendra - Rohtak",
+  "items": [
+    {
+      "category": "sewing_machine",
+      "description": "Industrial Single Needle Sewing Machine",
+      "required_quantity": 15,
+      "mandatory_for_batch": true
+    },
+    {
+      "category": "cutting_table",
+      "description": "Apparel Pattern Cutting Master Table",
+      "required_quantity": 3,
+      "mandatory_for_batch": true
+    },
+    {
+      "category": "ironing_press",
+      "description": "Steam Ironing Station",
+      "required_quantity": 2,
+      "mandatory_for_batch": true
+    }
+  ]
+}

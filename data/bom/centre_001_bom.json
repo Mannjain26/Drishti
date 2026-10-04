@@ -1,0 +1,25 @@
+{
+  "centre_id": "TC-DEL-0101",
+  "scheme_code": "PMKVY-4.0",
+  "centre_name": "Apex Skills Academy - Delhi Hub",
+  "items": [
+    {
+      "category": "computer_pc",
+      "description": "Desktop PC with Monitor & Peripherals",
+      "required_quantity": 20,
+      "mandatory_for_batch": true
+    },
+    {
+      "category": "workbench",
+      "description": "Electronics/Hardware Repair Workbench",
+      "required_quantity": 10,
+      "mandatory_for_batch": true
+    },
+    {
+      "category": "projector",
+      "description": "Digital Classroom Overhead Projector",
+      "required_quantity": 1,
+      "mandatory_for_batch": false
+    }
+  ]
+}
