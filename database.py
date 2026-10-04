@@ -1,6 +1,7 @@
 import json
 import datetime
 import os
+import time
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from dotenv import load_dotenv
@@ -12,8 +13,11 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 # Check for Supabase / PostgreSQL Database URL
 DATABASE_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
 
+engine = None
+SessionLocal = None
+Base = declarative_base()
+
 if not DATABASE_URL or DATABASE_URL.startswith("sqlite"):
-    # Fallback to local SQLite if no Supabase URL provided
     DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'attendance.db')}"
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
     print("[Database] Connected to Local SQLite Database.")
@@ -23,19 +27,19 @@ else:
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
     elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+"):
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
-    
-    # Configure PostgreSQL Engine with connection pooling and pre-ping
+
+    # Configure PostgreSQL Engine with resilient timeout and pool settings
     engine = create_engine(
         DATABASE_URL,
         pool_size=10,
         max_overflow=20,
         pool_pre_ping=True,
-        pool_recycle=300
+        pool_recycle=300,
+        connect_args={"connect_timeout": 10}
     )
-    print("[Database] Connected to Supabase PostgreSQL Database.")
+    print(f"[Database] Configured PostgreSQL Engine ({engine.url.host}).")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 class Student(Base):
     __tablename__ = "students"
@@ -87,7 +91,11 @@ class AttendanceRecord(Base):
     student = relationship("Student", back_populates="attendance")
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("[Database] Schema synchronized successfully.")
+    except Exception as e:
+        print(f"[Database Warning] Could not auto-sync schema on startup: {e}")
 
 def get_db():
     db = SessionLocal()
