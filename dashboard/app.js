@@ -629,10 +629,31 @@ function logout() {
 
 function setupNavigation() {
   const navBtns = document.querySelectorAll(".nav-item");
+  const sidebar = document.querySelector(".sidebar");
+  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+  const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+
+  function closeMobileSidebar() {
+    if (sidebar) sidebar.classList.remove("open");
+    if (sidebarBackdrop) sidebarBackdrop.classList.remove("active");
+  }
+
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener("click", () => {
+      if (sidebar) sidebar.classList.toggle("open");
+      if (sidebarBackdrop) sidebarBackdrop.classList.toggle("active");
+    });
+  }
+
+  if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener("click", closeMobileSidebar);
+  }
+
   navBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       navBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
+      closeMobileSidebar();
       
       const tabName = btn.getAttribute("data-tab");
       document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("active"));
