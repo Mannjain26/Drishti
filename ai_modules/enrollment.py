@@ -13,6 +13,8 @@ class EnrollmentService:
         norm = np.linalg.norm(avg_vector)
         if norm > 0:
             avg_vector = avg_vector / norm
+        
+        vector_to_save = [float(x) for x in avg_vector]
 
         db = SessionLocal()
         try:
@@ -29,10 +31,10 @@ class EnrollmentService:
             # Save / update embedding
             existing_emb = db.query(FaceEmbedding).filter(FaceEmbedding.student_id == student_id).first()
             if existing_emb:
-                existing_emb.set_vector(avg_vector)
+                existing_emb.set_vector(vector_to_save)
             else:
                 new_emb = FaceEmbedding(student_id=student_id)
-                new_emb.set_vector(avg_vector)
+                new_emb.set_vector(vector_to_save)
                 db.add(new_emb)
 
             db.commit()

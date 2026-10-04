@@ -66,7 +66,10 @@ class FaceEmbedding(Base):
         return json.loads(self.embedding_json)
 
     def set_vector(self, vec):
-        self.embedding_json = json.dumps(list(vec))
+        if hasattr(vec, "tolist"):
+            self.embedding_json = json.dumps(vec.tolist())
+        else:
+            self.embedding_json = json.dumps([float(x) for x in vec])
 
 class AttendanceSession(Base):
     __tablename__ = "attendance_sessions"
