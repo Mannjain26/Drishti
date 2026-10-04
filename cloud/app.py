@@ -158,9 +158,9 @@ async def enroll_student(
             detail="No clear face detected in the uploaded images. Please ensure good lighting and clear frontal angle."
         )
 
-    saved = EnrollmentService.enroll_student(student_id.strip(), name.strip(), batch.strip(), embeddings)
+    saved, err_msg = EnrollmentService.enroll_student(student_id.strip(), name.strip(), batch.strip(), embeddings)
     if not saved:
-        raise HTTPException(status_code=500, detail="Database error occurred while saving student profile.")
+        raise HTTPException(status_code=500, detail=f"Database error: {err_msg}")
 
     # Invalidate pipeline cache so new student is instantly recognized
     pipeline.refresh_known_embeddings(force=True)

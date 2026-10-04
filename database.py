@@ -10,36 +10,10 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-# Check for Supabase / PostgreSQL Database URL
 DATABASE_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+SQLITE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'attendance.db')}"
 
-engine = None
-SessionLocal = None
 Base = declarative_base()
-
-if not DATABASE_URL or DATABASE_URL.startswith("sqlite"):
-    DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'attendance.db')}"
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-    print("[Database] Connected to Local SQLite Database.")
-else:
-    # Ensure standard postgresql+psycopg2 scheme for SQLAlchemy
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
-    elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+"):
-        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
-
-    # Configure PostgreSQL Engine with resilient timeout and pool settings
-    engine = create_engine(
-        DATABASE_URL,
-        pool_size=10,
-        max_overflow=20,
-        pool_pre_ping=True,
-        pool_recycle=300,
-        connect_args={"connect_timeout": 10}
-    )
-    print(f"[Database] Configured PostgreSQL Engine ({engine.url.host}).")
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Student(Base):
     __tablename__ = "students"
@@ -93,15 +67,68 @@ class AttendanceRecord(Base):
     session = relationship("AttendanceSession", back_populates="records")
     student = relationship("Student", back_populates="attendance")
 
-def init_db():
+# Initialize Primary and Fallback Engines
+primary_engine = None
+fallback_engine = create_engine(SQLITE_URL, connect_args={"check_same_thread": False})
+FallbackSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=fallback_engine)
+
+if DATABASE_URL and not DATABASE_URL.startswith("sqlite"):
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+    
     try:
-        Base.metadata.create_all(bind=engine)
-        print("[Database] Schema synchronized successfully.")
+        primary_engine = create_engine(
+            DATABASE_URL,
+            pool_size=5,
+            max_overflow=10,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            connect_args={"connect_timeout": 8}
+        )
+        PrimarySessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=primary_engine)
+        print(f"[Database] Primary PostgreSQL engine initialized ({primary_engine.url.host}).")
     except Exception as e:
-        print(f"[Database Warning] Could not auto-sync schema on startup: {e}")
+        print(f"[Database Warning] PostgreSQL engine init failed: {e}")
+        PrimarySessionLocal = None
+else:
+    PrimarySessionLocal = None
+
+def init_db():
+    if primary_engine:
+        try:
+            Base.metadata.create_all(bind=primary_engine)
+            print("[Database] Supabase schema synchronized successfully.")
+        except Exception as e:
+            print(f"[Database Warning] Primary DB sync failed: {e}. Syncing fallback SQLite...")
+            Base.metadata.create_all(bind=fallback_engine)
+    else:
+        Base.metadata.create_all(bind=fallback_engine)
+        print("[Database] SQLite schema synchronized successfully.")
+
+from sqlalchemy import text
+
+def get_session():
+    """Returns an active database session with automatic fallback to SQLite if remote fails."""
+    if PrimarySessionLocal:
+        try:
+            session = PrimarySessionLocal()
+            session.execute(text("SELECT 1"))
+            return session
+        except Exception as e:
+            print(f"[Database Fallback] Switching to local DB due to remote error: {e}")
+            Base.metadata.create_all(bind=fallback_engine)
+            return FallbackSessionLocal()
+    else:
+        Base.metadata.create_all(bind=fallback_engine)
+        return FallbackSessionLocal()
+
+def SessionLocal():
+    return get_session()
 
 def get_db():
-    db = SessionLocal()
+    db = get_session()
     try:
         yield db
     finally:

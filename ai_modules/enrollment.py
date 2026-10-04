@@ -1,12 +1,12 @@
 import numpy as np
-from database import SessionLocal, Student, FaceEmbedding
+from database import SessionLocal, Student, FaceEmbedding, Base, fallback_engine
 
 class EnrollmentService:
     @staticmethod
-    def enroll_student(student_id: str, name: str, batch: str, frame_embeddings: list) -> bool:
+    def enroll_student(student_id: str, name: str, batch: str, frame_embeddings: list) -> tuple:
         """Averages multiple face embeddings and stores them safely in DB."""
         if not frame_embeddings:
-            return False
+            return False, "No facial embeddings provided."
 
         # Average the 128D embeddings and normalize
         avg_vector = np.mean(frame_embeddings, axis=0)
@@ -38,10 +38,10 @@ class EnrollmentService:
                 db.add(new_emb)
 
             db.commit()
-            return True
+            return True, "Enrolled successfully."
         except Exception as e:
             db.rollback()
             print(f"[Enrollment Error] {e}")
-            return False
+            return False, str(e)
         finally:
             db.close()
