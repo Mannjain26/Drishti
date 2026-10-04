@@ -206,10 +206,16 @@
 
             <!-- Camera Connection Controls -->
             <div class="camera-controls-box mt-3">
+              <div class="browser-cam-row mb-3">
+                <button type="button" class="btn btn-success btn-block" id="btnBrowserWebcam">
+                  💻 Start My Laptop / Phone Camera (Live AI)
+                </button>
+              </div>
+
               <form id="cameraConnectForm" class="camera-form">
                 <div class="camera-input-group">
                   <select id="cameraSourceType" class="form-input select-source">
-                    <option value="device">Webcam Index (0, 1, 2)</option>
+                    <option value="device">Local Device Index (0)</option>
                     <option value="rtsp">RTSP Stream (rtsp://...)</option>
                     <option value="file">MP4 Video File Path</option>
                   </select>
@@ -217,7 +223,7 @@
                 </div>
                 <div class="camera-btn-group">
                   <button type="submit" class="btn btn-primary" id="btnConnectCamera">
-                    📹 Connect Camera
+                    📹 Connect RTSP / Device
                   </button>
                   <button type="button" class="btn btn-danger" id="btnDisconnectCamera">
                     ⏹️ Stop
@@ -225,6 +231,10 @@
                 </div>
               </form>
               <div id="cameraFeedback" class="feedback-msg"></div>
+
+              <!-- Hidden elements for browser webcam capture -->
+              <video id="clientWebcamVideo" playsinline autoplay muted style="display: none;"></video>
+              <canvas id="clientWebcamCanvas" style="display: none;"></canvas>
             </div>
           </div>
 

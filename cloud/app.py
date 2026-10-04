@@ -174,6 +174,17 @@ async def enroll_student(
         "faces_processed": len(embeddings)
     }
 
+@app.post("/api/camera/frame")
+async def upload_browser_frame(file: UploadFile = File(...)):
+    """Receives a video frame from browser client webcam, updates camera manager, and triggers recognition."""
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if frame is not None:
+        camera_manager.update_browser_frame(frame)
+        return {"status": "success", "message": "Frame received"}
+    raise HTTPException(status_code=400, detail="Invalid frame format")
+
 @app.get("/api/attendance/status")
 def get_live_attendance_status():
     """Poll endpoint: returns real-time faces detected in camera and presence count."""
@@ -187,23 +198,29 @@ def get_live_attendance_status():
 
 @app.get("/api/attendance/history")
 def get_attendance_history(db: Session = Depends(get_db)):
-    """Returns recent persistent attendance timestamps from SQLite."""
-    records = db.query(DBAttendanceRecord, Student).join(
-        Student, DBAttendanceRecord.student_id == Student.student_id
-    ).order_by(DBAttendanceRecord.timestamp.desc()).limit(100).all()
+    """Returns recent persistent attendance timestamps from SQLite/Supabase."""
+    try:
+        records = db.query(DBAttendanceRecord, Student).join(
+            Student, DBAttendanceRecord.student_id == Student.student_id
+        ).order_by(DBAttendanceRecord.timestamp.desc()).limit(100).all()
 
-    return [
-        {
-            "id": r.AttendanceRecord.id,
-            "student_id": r.Student.student_id,
-            "name": r.Student.name,
-            "batch": r.Student.batch,
-            "session_id": r.AttendanceRecord.session_id,
-            "timestamp": r.AttendanceRecord.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "status": r.AttendanceRecord.status
-        }
-        for r in records
-    ]
+        results = []
+        for row in records:
+            att = row[0] if isinstance(row, (tuple, list)) else getattr(row, "AttendanceRecord", row)
+            stu = row[1] if isinstance(row, (tuple, list)) else getattr(row, "Student", None)
+            results.append({
+                "id": getattr(att, "id", 0),
+                "student_id": getattr(stu, "student_id", getattr(att, "student_id", "")),
+                "name": getattr(stu, "name", "Trainee"),
+                "batch": getattr(stu, "batch", "General"),
+                "session_id": getattr(att, "session_id", "LIVE"),
+                "timestamp": att.timestamp.strftime("%Y-%m-%d %H:%M:%S") if getattr(att, "timestamp", None) else "",
+                "status": getattr(att, "status", "Present")
+            })
+        return results
+    except Exception as e:
+        print(f"[Attendance History Query Warning] {e}")
+        return []
 
 @app.get("/api/students")
 def get_all_enrolled_students(db: Session = Depends(get_db)):

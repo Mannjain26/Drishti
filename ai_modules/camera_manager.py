@@ -3,7 +3,7 @@ import threading
 import time
 
 class CameraManager:
-    """Threaded Camera Manager supporting Webcam, RTSP, and Video Files."""
+    """Threaded Camera Manager supporting Webcam, RTSP, Video Files, and Browser Uploads."""
     def __init__(self):
         self.cap = None
         self.is_running = False
@@ -11,17 +11,23 @@ class CameraManager:
         self.lock = threading.Lock()
         self.thread = None
         self.source_info = {"source_type": "none", "source": ""}
+        self.last_browser_frame_time = 0
 
     def connect(self, source_type: str, source: str) -> bool:
         self.disconnect()
         
+        # If browser type, prepare for client-side streaming
+        if source_type == "browser":
+            self.is_running = True
+            self.source_info = {"source_type": "browser", "source": "Browser Webcam"}
+            return True
+
         # Parse device index if device
         src = int(source) if (source_type == "device" and str(source).strip().isdigit()) else source
         
         # Open capture
         try:
             if isinstance(src, int):
-                # On Windows, cv2.CAP_DSHOW often improves startup time for webcams
                 self.cap = cv2.VideoCapture(src, cv2.CAP_DSHOW)
                 if not self.cap.isOpened():
                     self.cap = cv2.VideoCapture(src)
@@ -34,7 +40,6 @@ class CameraManager:
         if not self.cap or not self.cap.isOpened():
             return False
 
-        # Set capture properties
         if isinstance(src, int):
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -44,6 +49,13 @@ class CameraManager:
         self.thread = threading.Thread(target=self._capture_worker, daemon=True)
         self.thread.start()
         return True
+
+    def update_browser_frame(self, frame):
+        with self.lock:
+            self.current_frame = frame
+        self.is_running = True
+        self.source_info = {"source_type": "browser", "source": "Browser Webcam"}
+        self.last_browser_frame_time = time.time()
 
     def _capture_worker(self):
         while self.is_running and self.cap and self.cap.isOpened():
@@ -59,6 +71,10 @@ class CameraManager:
 
     def get_frame(self):
         with self.lock:
+            # Check timeout for browser feed (if no new frame in 4s, clear)
+            if self.source_info["source_type"] == "browser" and (time.time() - self.last_browser_frame_time > 4.0):
+                self.current_frame = None
+                self.is_running = False
             return self.current_frame.copy() if self.current_frame is not None else None
 
     def disconnect(self):

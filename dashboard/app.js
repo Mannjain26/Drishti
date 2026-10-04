@@ -222,17 +222,89 @@ document.addEventListener("DOMContentLoaded", () => {
 // 👁️ AI FACE DETECTION & ATTENDANCE SYSTEM CONTROLLERS
 // =========================================================
 
+let browserStream = null;
+let browserCaptureInterval = null;
+
 function initFaceAttendance() {
   const cameraForm = document.getElementById("cameraConnectForm");
   const btnDisconnect = document.getElementById("btnDisconnectCamera");
   const enrollForm = document.getElementById("enrollmentForm");
   const btnRefreshHistory = document.getElementById("btnRefreshHistory");
   const btnViewEnrolled = document.getElementById("btnViewEnrolled");
+  const btnBrowserCam = document.getElementById("btnBrowserWebcam");
 
-  // 1. Camera Connect
+  // 1. Browser Client Webcam (Live laptop/mobile camera stream to cloud)
+  if (btnBrowserCam) {
+    btnBrowserCam.addEventListener("click", async () => {
+      const feedback = document.getElementById("cameraFeedback");
+      const video = document.getElementById("clientWebcamVideo");
+      const canvas = document.getElementById("clientWebcamCanvas");
+
+      if (browserStream) {
+        stopBrowserCamera();
+        feedback.innerText = "⏹️ Laptop camera stopped.";
+        feedback.className = "feedback-msg text-muted";
+        btnBrowserCam.innerText = "💻 Start My Laptop / Phone Camera (Live AI)";
+        btnBrowserCam.className = "btn btn-success btn-block";
+        return;
+      }
+
+      try {
+        feedback.innerText = "Requesting camera access...";
+        feedback.className = "feedback-msg text-info";
+
+        browserStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false
+        });
+
+        video.srcObject = browserStream;
+        await video.play();
+
+        feedback.innerText = "🟢 Laptop camera streaming to AI Engine in real time!";
+        feedback.className = "feedback-msg text-success";
+        btnBrowserCam.innerText = "⏹️ Stop Laptop Camera";
+        btnBrowserCam.className = "btn btn-danger btn-block";
+
+        // Connect server to browser mode
+        await fetch(`${API_BASE}/camera/connect`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ source_type: "browser", source: "Browser Webcam" })
+        });
+
+        // Set stream image
+        document.getElementById("stream").src = `${API_BASE}/camera/stream?t=${Date.now()}`;
+
+        // Stream frames to /api/camera/frame
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext("2d");
+
+        if (browserCaptureInterval) clearInterval(browserCaptureInterval);
+        browserCaptureInterval = setInterval(() => {
+          if (!browserStream || video.paused || video.ended) return;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            if (!blob) return;
+            const fd = new FormData();
+            fd.append("file", blob, "frame.jpg");
+            fetch(`${API_BASE}/camera/frame`, { method: "POST", body: fd }).catch(() => {});
+          }, "image/jpeg", 0.70);
+        }, 150);
+
+      } catch (err) {
+        feedback.innerText = "❌ Camera permission denied or not available: " + err.message;
+        feedback.className = "feedback-msg text-danger";
+      }
+    });
+  }
+
+  // 2. Camera Connect (RTSP / Local Device)
   if (cameraForm) {
     cameraForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      stopBrowserCamera();
       const feedback = document.getElementById("cameraFeedback");
       const sourceType = document.getElementById("cameraSourceType").value;
       const source = document.getElementById("cameraSourceInput").value.trim();
@@ -250,7 +322,6 @@ function initFaceAttendance() {
         if (res.ok) {
           feedback.innerText = "✅ " + data.message;
           feedback.className = "feedback-msg text-success";
-          // Reload stream
           const streamImg = document.getElementById("stream");
           streamImg.src = `${API_BASE}/camera/stream?t=${Date.now()}`;
         } else {
@@ -264,9 +335,10 @@ function initFaceAttendance() {
     });
   }
 
-  // 2. Camera Disconnect
+  // 3. Camera Disconnect
   if (btnDisconnect) {
     btnDisconnect.addEventListener("click", async () => {
+      stopBrowserCamera();
       const feedback = document.getElementById("cameraFeedback");
       try {
         const res = await fetch(`${API_BASE}/camera/disconnect`, { method: "POST" });
@@ -274,13 +346,17 @@ function initFaceAttendance() {
         feedback.innerText = "⏹️ " + (data.message || "Disconnected.");
         feedback.className = "feedback-msg text-muted";
         document.getElementById("stream").src = `${API_BASE}/camera/stream?t=${Date.now()}`;
+        if (btnBrowserCam) {
+          btnBrowserCam.innerText = "💻 Start My Laptop / Phone Camera (Live AI)";
+          btnBrowserCam.className = "btn btn-success btn-block";
+        }
       } catch (err) {
         console.error(err);
       }
     });
   }
 
-  // 3. Student Enrollment
+  // 4. Student Enrollment
   if (enrollForm) {
     enrollForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -326,12 +402,12 @@ function initFaceAttendance() {
     });
   }
 
-  // 4. Attendance History Refresh
+  // 5. Attendance History Refresh
   if (btnRefreshHistory) {
     btnRefreshHistory.addEventListener("click", () => refreshAttendanceHistory());
   }
 
-  // 5. View Enrolled List
+  // 6. View Enrolled List
   if (btnViewEnrolled) {
     btnViewEnrolled.addEventListener("click", async () => {
       try {
@@ -351,10 +427,20 @@ function initFaceAttendance() {
     });
   }
 
-  // Start Real-Time 2-Second Polling Loop
   startAttendancePolling();
   refreshAttendanceHistory();
   fetchEnrolledStudentsCount();
+}
+
+function stopBrowserCamera() {
+  if (browserCaptureInterval) {
+    clearInterval(browserCaptureInterval);
+    browserCaptureInterval = null;
+  }
+  if (browserStream) {
+    browserStream.getTracks().forEach(t => t.stop());
+    browserStream = null;
+  }
 }
 
 function startAttendancePolling() {
