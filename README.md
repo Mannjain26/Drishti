@@ -344,9 +344,15 @@ Once the server is running, explore interactive OpenAPI/Swagger docs at **`http:
 
 ## 👥 Team & Hackathon Information
 
-- **Team Name**: *[Insert Your Team Name / e.g., Team Drishti]*
-- **Team Lead**: **Mann Jain** ([@Mannjain26](https://github.com/Mannjain26))
-- **Team Members**: *[Member 1, Member 2, Member 3, Member 4, Member 5]*
+- **Team Name**: **Team Sarcastic**
+- **Team Lead**: **Ayush Jain** ([@Ayushcodern](https://github.com/Ayushcodern))
+- **Team Members**:
+  - **Ayush Jain** (Team Lead)
+  - **Archanya Tiwari**
+  - **Aditi Tiwari**
+  - **Akshat Birla**
+  - **Parul Vyas**
+  - **Mann Jain**
 - **Hackathon**: Smart India Hackathon (SIH) 2026
 - **Problem Statement**: `SIH-26245` — Ministry of Skill Development & Entrepreneurship (MSDE)
 

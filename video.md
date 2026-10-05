@@ -33,9 +33,9 @@
 | **Expected Visual** | Login overlay smoothly transitions with a slide-out animation into the dark Cyber-Gov Command Centre Dashboard. |
 
 #### 🎙️ Spoken Script:
-> *"Hello everyone! Greetings from **[Team Name / e.g., Team Drishti]**!*
+> *"Hello everyone! Greetings from **Team Sarcastic**!*
 >
-> *I am **Mann Jain**, and along with my team members **[Member 1, Member 2, Member 3]**, we are excited to present our solution for the Smart India Hackathon under the **Ministry of Skill Development & Entrepreneurship**.*
+> *I am **Ayush Jain** (along with **Archanya Tiwari, Aditi Tiwari, Akshat Birla, Parul Vyas, and Mann Jain**), and we are excited to present our solution for the Smart India Hackathon under the **Ministry of Skill Development & Entrepreneurship**.*
 >
 > *Our project is **DRISHTI**—an automated AI vision vigilance and real-time facial attendance platform.*
 >
