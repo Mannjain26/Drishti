@@ -1,7 +1,6 @@
 fastapi>=0.110.0
 uvicorn[standard]>=0.29.0
-opencv-python>=4.9.0.80
-opencv-contrib-python>=4.9.0.80
+opencv-python-headless>=4.9.0.80
 numpy>=1.26.0
 pydantic>=2.7.0
 sqlalchemy>=2.0.29
@@ -10,3 +9,4 @@ requests>=2.31.0
 psycopg2-binary>=2.9.9
 psycopg[binary]>=3.1.18
 python-dotenv>=1.0.1
+cryptography>=42.0.0
