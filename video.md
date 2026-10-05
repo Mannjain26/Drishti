@@ -9,9 +9,9 @@
 ## ⏱️ Quick Video Roadmap & Timing Breakdown
 
 ```
-0:00 - 0:25  | 🇮🇳 Scene 1: Introduction & Ministry Login Portal
-0:25 - 1:15  | 👁️ Scene 2: Live AI Face Attendance & Instant Enrollment
-1:15 - 1:55  | 📊 Scene 3: National Overview & Skilling Integrity Score (SIS)
+0:00 - 0:35  | 🇮🇳 Scene 1: Team Introduction & Ministry Login Portal
+0:35 - 1:20  | 👁️ Scene 2: Live AI Face Attendance & Instant Enrollment
+1:20 - 1:55  | 📊 Scene 3: National Overview & Skilling Integrity Score (SIS)
 1:55 - 2:30  | 📈 Scene 4: Presence Dwell Curves & Punch-and-Leave Detection
 2:30 - 3:00  | ⛓️ Scene 5: Cryptographic SHA-256 Tamper-Proof Ledger
 3:00 - 3:30  | ⚔️ Scene 6: Adversarial Red-Team Attack Simulator & Audit Queue
@@ -24,20 +24,24 @@
 
 ---
 
-### 📍 Scene 1: Introduction & Ministry Login (0:00 – 0:25)
+### 📍 Scene 1: Team Introduction & Ministry Portal Login (0:00 – 0:35)
 
 | Element | Details |
 | :--- | :--- |
-| **Duration** | 25 Seconds |
-| **On-Screen Action** | Open `http://localhost:8000` (or live Render link). Show the official MSDE Government Portal login card. Click the **"हिंदी"** button to show bilingual toggle, then click **"English"**. Click **"🏛️ MSDE Officer"** quick-login button. |
-| **Expected Visual** | Login overlay transitions with a smooth slide-out into the dark Cyber-Gov Command Center Dashboard. |
+| **Duration** | 35 Seconds |
+| **On-Screen Action** | 1. Show opening slide / title with **Team Name & Members** (or display camera on presenter).<br>2. Switch to `http://localhost:8000` showing the official MSDE Government Portal login card.<br>3. Click the **"हिंदी"** button to show bilingual switch, then click **"English"**.<br>4. Click **"🏛️ MSDE Officer"** quick-login button. |
+| **Expected Visual** | Login overlay smoothly transitions with a slide-out animation into the dark Cyber-Gov Command Centre Dashboard. |
 
 #### 🎙️ Spoken Script:
-> *"Hello everyone! Welcome to the live demonstration of **DRISHTI**—an automated AI-powered vigilance and real-time facial attendance platform engineered for the Ministry of Skill Development and Entrepreneurship.*
+> *"Hello everyone! Greetings from **[Team Name / e.g., Team Drishti]**!*
 >
-> *Across government skilling schemes like PMKVY and DDU-GKY, billions of rupees are lost to ghost attendance, biometric punch-and-leave fraud, and inactive training equipment.*
+> *I am **Mann Jain**, and along with my team members **[Member 1, Member 2, Member 3]**, we are excited to present our solution for the Smart India Hackathon under the **Ministry of Skill Development & Entrepreneurship**.*
 >
-> *Drishti solves this with an edge-to-cloud computer vision pipeline. Let's log in as an authorized MSDE Monitoring Officer."*
+> *Our project is **DRISHTI**—an automated AI vision vigilance and real-time facial attendance platform.*
+>
+> *Across schemes like PMKVY and DDU-GKY, billions of rupees are lost to ghost trainees, biometric 'punch-and-leave' fraud, and unverified training equipment. Drishti solves this with an edge-to-cloud computer vision pipeline.*
+>
+> *Let's log in to the MSDE National Command Portal."*
 
 ---
 
