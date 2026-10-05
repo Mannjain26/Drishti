@@ -6,8 +6,11 @@ __pycache__/
 env/
 *.db
 attendance.db
+data/*.db
+data/protected_keys/
 models/
 .vercel
 node_modules/
 .DS_Store
 yolov8n.pt
+*.key

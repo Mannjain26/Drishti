@@ -34,12 +34,16 @@ from cloud.scorer import SISScorer
 from cloud.correlation import CrossCentreCorrelationEngine
 from edge.packager import TelemetryPackager
 
-# Database & AI Modules
+# Database & Detector AI Modules
 from database import init_db, get_db, Student, AttendanceRecord as DBAttendanceRecord, AttendanceSession, FaceEmbedding
 from ai_modules.model_downloader import ensure_models
 from ai_modules.camera_manager import CameraManager
-from ai_modules.face_detector import FaceDetector
-from ai_modules.face_recognizer import SFaceRecognizer
+from detector.face_detector import FaceDetector, FaceDetection
+from detector.recognizer import SFaceRecognizer
+from detector.attendance import AttendanceStore
+from detector.student_store import StudentStore
+from detector.protected_store import ProtectedRepresentationStore
+from detector.recognition import FaceRecognitionService
 from ai_modules.enrollment import EnrollmentService
 from ai_modules.pipeline import FramePipeline
 
@@ -53,9 +57,10 @@ init_db()
 models = ensure_models(MODELS_DIR)
 
 camera_manager = CameraManager()
-face_detector = FaceDetector(models["yunet"])
-face_recognizer = SFaceRecognizer(models["sface"], distance_threshold=0.45)
-pipeline = FramePipeline(camera_manager, face_detector, face_recognizer)
+face_detector = FaceDetector(model_path=models["yunet"])
+face_recognizer = SFaceRecognizer(model_path=models["sface"])
+attendance_store = AttendanceStore("data/detector_attendance.db")
+pipeline = FramePipeline(camera_manager, face_detector, face_recognizer, attendance_db_path="data/detector_attendance.db")
 
 app = FastAPI(title="Drishti Cloud Vigilance & AI Vision Core", version="2.0.0")
 
@@ -149,8 +154,14 @@ async def enroll_student(
 
         faces = face_detector.detect(frame)
         if len(faces) > 0:
-            emb = face_recognizer.align_and_extract(frame, faces[0])
-            embeddings.append(emb)
+            det = faces[0]
+            model_row = det.model_row if isinstance(det, FaceDetection) else det
+            if model_row is not None:
+                try:
+                    emb = face_recognizer.extract(frame, model_row)
+                    embeddings.append(emb)
+                except Exception as e:
+                    print(f"[Enrollment Extraction Error] {e}")
 
     if len(embeddings) == 0:
         raise HTTPException(
